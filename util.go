@@ -29,7 +29,7 @@ func (db *DB) structToMap(obj interface{}) map[string]interface{} {
 
 	for _, key := range keys {
 		fieldV := v.FieldByName(key)
-		name := db.Config.NamingStrategy.ToColumn(key)
+		name := db.Config.NamingStrategy.ColumnName("", key)
 		if fieldT, ok := t.FieldByName(key); ok {
 			name = db.getColumnName(fieldT)
 		}
@@ -121,7 +121,7 @@ func (db *DB) getUpdateValue(model interface{}, value interface{}) (map[string]i
 	if valueV.Kind() == reflect.Map {
 		for _, mapKey := range valueV.MapKeys() {
 			valueField := valueV.MapIndex(mapKey)
-			fieldName := db.Config.NamingStrategy.ToField(mapKey.Interface().(string))
+			fieldName := db.Config.NamingStrategy.SchemaName(mapKey.Interface().(string))
 			modelField, found := modelT.FieldByName(fieldName)
 			if found && modelField.Tag.Get("gorm") == "-" {
 				continue
@@ -170,10 +170,10 @@ func (db *DB) validatePK(model interface{}, primaryKey ...string) (*PK, error) {
 		if pkField.Name == "" {
 			return nil, ErrorPrimaryKeyUnset()
 		}
-		pkName = db.getColumnName(pkField)
+		pkName = pkField.Name
 	}
 
-	fieldV := modelV.FieldByName(db.Config.NamingStrategy.ToField(pkName))
+	fieldV := modelV.FieldByName(pkName)
 	if !fieldV.IsValid() {
 		return nil, ErrorPrimaryKeyInvalid()
 	}
@@ -190,15 +190,15 @@ func (db *DB) validatePK(model interface{}, primaryKey ...string) (*PK, error) {
 func (db *DB) getColumnName(field reflect.StructField) string {
 	tag := field.Tag.Get("gorm")
 	if tag == "" {
-		return db.Config.NamingStrategy.ToColumn(field.Name)
+		return db.Config.NamingStrategy.ColumnName("", field.Name)
 	}
 	arr := strings.Split(tag, ",")
 	for _, str := range arr {
 		if strings.HasPrefix(str, "column:") {
-			return db.Config.NamingStrategy.ToColumn(strings.Replace(str, "column:", "", 1))
+			return db.Config.NamingStrategy.ColumnName("", strings.Replace(str, "column:", "", 1))
 		}
 	}
-	return db.Config.NamingStrategy.ToColumn(field.Name)
+	return db.Config.NamingStrategy.ColumnName("", field.Name)
 }
 
 func (db *DB) getPKName(model interface{}) string {

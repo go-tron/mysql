@@ -348,7 +348,7 @@ func (db *DB) QueryBuilder(model interface{}, opts ...Option) (*gorm.DB, *QueryO
 			modelT = modelT.Elem()
 		}
 		if _, ok := modelT.FieldByName("Deleted"); ok {
-			query = query.Where(db.Config.NamingStrategy.ToColumn(modelT.Name()) + ".deleted = 0")
+			query = query.Where(db.Config.NamingStrategy.TableName(modelT.Name()) + ".deleted = 0")
 		}
 	}
 

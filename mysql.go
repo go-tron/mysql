@@ -11,12 +11,6 @@ import (
 	"time"
 )
 
-type NamingStrategy interface {
-	Replace(name string) string
-	ToColumn(name string) string
-	ToField(name string) string
-}
-
 type Config struct {
 	Dialect        string `json:"dialect"`
 	Url            string `json:"url"`
@@ -24,22 +18,7 @@ type Config struct {
 	MaxOpenConns   int    `json:"maxOpenConns"`
 	Debug          bool   `json:"debug"`
 	Logger         goLogger.Logger
-	NamingStrategy NamingStrategy
-}
-
-type CamelCaseStrategy struct {
-}
-
-func (s *CamelCaseStrategy) ToColumn(name string) string {
-	return stringUtil.FirstCharToLower(name)
-}
-
-func (s *CamelCaseStrategy) ToField(name string) string {
-	return stringUtil.FirstCharToUpper(name)
-}
-
-func (s *CamelCaseStrategy) Replace(name string) string {
-	return s.ToColumn(name)
+	NamingStrategy *schema.NamingStrategy
 }
 
 func NewWithConfig(c *config.Config) *DB {
@@ -66,14 +45,12 @@ func New(c *Config) *DB {
 	}
 
 	if c.NamingStrategy == nil {
-		c.NamingStrategy = &CamelCaseStrategy{}
+		c.NamingStrategy = &schema.NamingStrategy{
+			SingularTable: true,
+		}
 	}
 	conf := &gorm.Config{
-		NamingStrategy: schema.NamingStrategy{
-			SingularTable: true,
-			NameReplacer:  c.NamingStrategy,
-			NoLowerCase:   true,
-		},
+		NamingStrategy: c.NamingStrategy,
 	}
 	if c.Debug {
 		conf.Logger = DefaultLogger.LogMode(Info)
@@ -98,4 +75,11 @@ func New(c *Config) *DB {
 		panic(err)
 	}
 	return &DB{Config: c, DB: db}
+}
+
+type CamelCaseReplacer struct {
+}
+
+func (s *CamelCaseReplacer) Replace(name string) string {
+	return stringUtil.FirstCharToLower(name)
 }
