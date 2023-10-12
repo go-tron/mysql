@@ -251,3 +251,11 @@ func GetRecordNotAffectedError(model interface{}) string {
 	}
 	return result.(string)
 }
+
+func GetTableName(model interface{}) string {
+	result, err := ModelMethod(model, "TableName")
+	if err != nil {
+		return ""
+	}
+	return result.(string)
+}

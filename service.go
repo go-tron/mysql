@@ -99,7 +99,7 @@ func (b *BaseService) Update(value interface{}, filters ...map[string]interface{
 	if err := b.DB.UpdateById(
 		value,
 		value,
-		b.DB.WithOmit("createdAt", "createdBy"),
+		b.DB.WithOmit("created_at", "created_by"),
 		b.DB.WithFilters(filters...),
 	); err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (b *BaseService) Remove(value interface{}, filters ...map[string]interface{
 	return b.DB.UpdateById(
 		value,
 		value,
-		b.DB.WithAttend("updatedAt", "updatedBy", "deleted"),
+		b.DB.WithAttend("updated_at", "updated_by", "deleted"),
 		b.DB.WithFilters(filters...),
 	)
 }
