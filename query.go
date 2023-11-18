@@ -393,11 +393,19 @@ func (db *DB) FindPageWithModel(model interface{}, opts ...Option) (interface{},
 
 func (db *DB) FindAll(list interface{}, opts ...Option) error {
 	listT := reflect.TypeOf(list)
-	if listT.Kind() != reflect.Ptr || listT.Elem().Kind() != reflect.Slice || listT.Elem().Elem().Kind() != reflect.Struct {
+	if listT.Kind() != reflect.Ptr || listT.Elem().Kind() != reflect.Slice {
+		return ErrorModel()
+	}
+	if !(listT.Elem().Elem().Kind() == reflect.Struct  || (listT.Elem().Elem().Kind() == reflect.Ptr && listT.Elem().Elem().Elem().Kind() == reflect.Struct))  {
 		return ErrorModel()
 	}
 
-	model := reflect.New(listT.Elem().Elem()).Interface()
+	elem := listT.Elem().Elem()
+	if elem.Kind() == reflect.Ptr {
+		elem = elem.Elem()
+	}
+
+	model := reflect.New(elem).Interface()
 	query, queryOpt := db.QueryBuilder(model, opts...)
 	query = db.DefaultSort(model, query, queryOpt)
 
