@@ -187,6 +187,20 @@ func (db *DB) validatePK(model interface{}, primaryKey ...string) (*PK, error) {
 	}, nil
 }
 
+func (db *DB) setPKValue(model interface{}, pkFieldName string, value interface{}) error {
+	modelV := reflect.ValueOf(model)
+	if modelV.Kind() == reflect.Ptr {
+		modelV = modelV.Elem()
+	}
+
+	fieldV := modelV.FieldByName(pkFieldName)
+	if !(fieldV.IsValid() && fieldV.CanSet()) {
+		return ErrorPrimaryKeyInvalid()
+	}
+	fieldV.Set(reflect.ValueOf(value))
+	return nil
+}
+
 func (db *DB) getColumnName(field reflect.StructField) string {
 	tag := field.Tag.Get("gorm")
 	if tag == "" {

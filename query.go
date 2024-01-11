@@ -109,7 +109,12 @@ func (db *DB) CloneById(model interface{}, opts ...Option) (interface{}, error) 
 		return nil, ErrorModel()
 	}
 	clone := reflect.New(reflect.TypeOf(model).Elem()).Interface()
-	if err := copier.Copy(clone, model); err != nil {
+
+	pk, err := db.validatePK(model)
+	if err != nil {
+		return nil, err
+	}
+	if err := db.setPKValue(clone, pk.Name, pk.Value); err != nil {
 		return nil, err
 	}
 	if err := db.FindById(clone, opts...); err != nil {
@@ -396,7 +401,7 @@ func (db *DB) FindAll(list interface{}, opts ...Option) error {
 	if listT.Kind() != reflect.Ptr || listT.Elem().Kind() != reflect.Slice {
 		return ErrorModel()
 	}
-	if !(listT.Elem().Elem().Kind() == reflect.Struct  || (listT.Elem().Elem().Kind() == reflect.Ptr && listT.Elem().Elem().Elem().Kind() == reflect.Struct))  {
+	if !(listT.Elem().Elem().Kind() == reflect.Struct || (listT.Elem().Elem().Kind() == reflect.Ptr && listT.Elem().Elem().Elem().Kind() == reflect.Struct)) {
 		return ErrorModel()
 	}
 
