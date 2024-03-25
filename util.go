@@ -209,7 +209,7 @@ func (db *DB) getColumnName(field reflect.StructField) string {
 	arr := strings.Split(tag, ",")
 	for _, str := range arr {
 		if strings.HasPrefix(str, "column:") {
-			return db.Config.NamingStrategy.ColumnName("", strings.Replace(str, "column:", "", 1))
+			return strings.Replace(str, "column:", "", 1)
 		}
 	}
 	return db.Config.NamingStrategy.ColumnName("", field.Name)
@@ -250,20 +250,28 @@ func ModelMethod(model interface{}, methodName string) (r interface{}, err error
 	return result[0].Interface(), nil
 }
 
-func GetRecordNotFoundError(model interface{}) string {
+func GetRecordNotFoundError(model interface{}) error {
 	result, err := ModelMethod(model, "RecordNotFoundError")
 	if err != nil {
-		return "record not found"
+		return ErrorRecordNotFound()
 	}
-	return result.(string)
+	e, ok := result.(error)
+	if !ok {
+		return ErrorRecordNotFound()
+	}
+	return e
 }
 
-func GetRecordNotAffectedError(model interface{}) string {
+func GetRecordNotAffectedError(model interface{}) error {
 	result, err := ModelMethod(model, "NoRecordAffectedError")
 	if err != nil {
-		return "record for update not found"
+		return ErrorRecordNotAffected()
 	}
-	return result.(string)
+	e, ok := result.(error)
+	if !ok {
+		return ErrorRecordNotAffected()
+	}
+	return e
 }
 
 func GetTableName(model interface{}) string {

@@ -1,16 +1,14 @@
 package mysql
 
 import (
-	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
 )
 
 type UniqueIndexError struct {
-	IndexName      string
-	ErrMsg         string
-	FieldForErrMsg string
+	IndexName string
+	Error     error
 }
 
 func GetUniqueIndex(model interface{}) ([]UniqueIndexError, error) {
@@ -18,7 +16,11 @@ func GetUniqueIndex(model interface{}) ([]UniqueIndexError, error) {
 	if err != nil {
 		return nil, ErrorUniqueIndexUnset()
 	}
-	return result.([]UniqueIndexError), nil
+	errors, ok := result.([]UniqueIndexError)
+	if !ok {
+		return nil, ErrorUniqueIndexType()
+	}
+	return errors, nil
 }
 
 func GetIndexName(msg string) (string, error) {
@@ -66,19 +68,11 @@ func GetUniqueIndexError(model interface{}, error string) error {
 		}
 
 		if uniqueIndex.IndexName == indexName || indexNameWithoutTable == indexName {
-			errMsg := uniqueIndex.ErrMsg
-			if errMsg == "" {
-				return ErrorUniqueIndexMessageUnset()
+			uniqueIndexErr := uniqueIndex.Error
+			if uniqueIndexErr != nil {
+				return uniqueIndexErr
 			} else {
-				if strings.Contains(errMsg, "%s") && uniqueIndex.FieldForErrMsg != "" {
-					val, err := GetFieldValue(model, uniqueIndex.FieldForErrMsg)
-					if err != nil {
-						return err
-					}
-					return ErrorUniqueIndex(fmt.Sprintf(errMsg, val))
-				} else {
-					return ErrorUniqueIndex(errMsg)
-				}
+				return ErrorUniqueIndexMessageUnset()
 			}
 		}
 	}

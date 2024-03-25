@@ -3,17 +3,18 @@ module github.com/go-tron/mysql
 go 1.19
 
 require (
-	github.com/go-sql-driver/mysql v1.7.1
-	github.com/go-tron/base-error v1.0.0
-	github.com/go-tron/config v1.0.0
+	github.com/go-sql-driver/mysql v1.8.0
+	github.com/go-tron/base-error v1.0.2
+	github.com/go-tron/config v1.0.1
 	github.com/go-tron/logger v1.0.1
 	github.com/go-tron/types v1.0.1
 	github.com/jinzhu/copier v0.4.0
-	gorm.io/driver/mysql v1.5.1
-	gorm.io/gorm v1.25.4
+	gorm.io/driver/mysql v1.5.6
+	gorm.io/gorm v1.25.8
 )
 
 require (
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-tron/random v1.0.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

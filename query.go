@@ -61,7 +61,7 @@ func (db *DB) FindById(model interface{}, opts ...Option) error {
 				if err := queryOpt.ErrorNotFound; err != nil {
 					return err
 				}
-				return ErrorRecordNotFound(GetRecordNotFoundError(model))
+				return GetRecordNotFoundError(model)
 			}
 		} else {
 			return ErrorQuery(err)
@@ -90,7 +90,7 @@ func (db *DB) FindOne(model interface{}, opts ...Option) error {
 			if err := queryOpt.ErrorNotFound; err != nil {
 				return err
 			}
-			return ErrorRecordNotFound(GetRecordNotFoundError(model))
+			return GetRecordNotFoundError(model)
 		}
 	}
 	if count > 1 {
@@ -146,7 +146,7 @@ func (db *DB) delete(model interface{}, query *gorm.DB, queryOpt *QueryOption) e
 		if err := queryOpt.ErrorNotAffected; err != nil {
 			return err
 		}
-		return ErrorRecordNotAffected(GetRecordNotAffectedError(model))
+		return GetRecordNotAffectedError(model)
 	}
 	return nil
 }
@@ -187,7 +187,7 @@ func (db *DB) DeleteOne(model interface{}, opts ...Option) error {
 			if err := queryOpt.ErrorNotFound; err != nil {
 				return err
 			}
-			return ErrorRecordNotFound(GetRecordNotFoundError(model))
+			return GetRecordNotFoundError(model)
 		}
 	}
 	if count > 1 {
@@ -223,7 +223,7 @@ func (db *DB) update(model interface{}, updates interface{}, query *gorm.DB, que
 		if err := queryOpt.ErrorNotAffected; err != nil {
 			return 0, err
 		}
-		return 0, ErrorRecordNotAffected(GetRecordNotAffectedError(model))
+		return 0, GetRecordNotAffectedError(model)
 	}
 	return int(query.RowsAffected), nil
 }
@@ -295,7 +295,7 @@ func (db *DB) UpdateOne(model interface{}, values interface{}, opts ...Option) e
 			if err := queryOpt.ErrorNotFound; err != nil {
 				return err
 			}
-			return ErrorRecordNotFound(GetRecordNotFoundError(model))
+			return GetRecordNotFoundError(model)
 		}
 	}
 	if count > 1 {
@@ -352,7 +352,7 @@ func (db *DB) Find(model interface{}, opts ...Option) error {
 				if err := queryOpt.ErrorNotFound; err != nil {
 					return err
 				}
-				return ErrorRecordNotFound(GetRecordNotFoundError(model))
+				return GetRecordNotFoundError(model)
 			}
 		} else {
 			return ErrorQuery(err)
@@ -427,11 +427,19 @@ func (db *DB) FindAll(list interface{}, opts ...Option) error {
 
 func (db *DB) FindPage(list interface{}, opts ...Option) (int, error) {
 	listT := reflect.TypeOf(list)
-	if listT.Kind() != reflect.Ptr || listT.Elem().Kind() != reflect.Slice || listT.Elem().Elem().Kind() != reflect.Struct {
+	if listT.Kind() != reflect.Ptr || listT.Elem().Kind() != reflect.Slice {
+		return 0, ErrorModel()
+	}
+	if !(listT.Elem().Elem().Kind() == reflect.Struct || (listT.Elem().Elem().Kind() == reflect.Ptr && listT.Elem().Elem().Elem().Kind() == reflect.Struct)) {
 		return 0, ErrorModel()
 	}
 
-	model := reflect.New(listT.Elem().Elem()).Interface()
+	elem := listT.Elem().Elem()
+	if elem.Kind() == reflect.Ptr {
+		elem = elem.Elem()
+	}
+
+	model := reflect.New(elem).Interface()
 	query, queryOpt := db.QueryBuilder(model, opts...)
 	query = db.DefaultSort(model, query, queryOpt)
 

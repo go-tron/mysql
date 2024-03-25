@@ -21,7 +21,14 @@ type Config struct {
 	NamingStrategy *schema.NamingStrategy
 }
 
-func NewWithConfig(c *config.Config) *DB {
+type ConfigOption func(*Config)
+
+func WithNamingStrategy(val *schema.NamingStrategy) ConfigOption {
+	return func(config *Config) {
+		config.NamingStrategy = val
+	}
+}
+func NewWithConfig(c *config.Config, opts ...ConfigOption) *DB {
 	return New(&Config{
 		Dialect:      c.GetString("database.dialect"),
 		Url:          c.GetString("database.url"),
@@ -29,13 +36,17 @@ func NewWithConfig(c *config.Config) *DB {
 		MaxOpenConns: c.GetInt("database.maxOpenConns"),
 		Debug:        c.GetBool("database.debug"),
 		Logger:       goLogger.NewZapWithConfig(c, "mysql", "error"),
-	})
+	}, opts...)
 }
 
-func New(c *Config) *DB {
-
+func New(c *Config, opts ...ConfigOption) *DB {
 	if c == nil {
 		panic("c 必须设置")
+	}
+	for _, apply := range opts {
+		if apply != nil {
+			apply(c)
+		}
 	}
 	if c.Url == "" {
 		panic("Url 必须设置")
