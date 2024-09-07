@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"github.com/go-tron/types/pageable"
 	"gorm.io/gorm"
 	"reflect"
 )
@@ -27,7 +26,7 @@ type QueryOption struct {
 	Group            string
 	Limit            int
 	Offset           int
-	Pageable         *pageable.Pageable
+	Pageable         *Pageable
 	Sort             []string
 	Pluck            []interface{}
 	First            bool
@@ -176,12 +175,12 @@ func (db *DB) WithOffset(val int) Option {
 }
 func (db *DB) WithPage(page int, size int, sort string) Option {
 	return func(opts *QueryOption) {
-		opts.Pageable = &pageable.Pageable{
+		opts.Pageable = &Pageable{
 			Page: page, Size: size, Sort: sort,
 		}
 	}
 }
-func (db *DB) WithPageable(val *pageable.Pageable) Option {
+func (db *DB) WithPageable(val *Pageable) Option {
 	return func(opts *QueryOption) {
 		opts.Pageable = val
 	}

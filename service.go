@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"encoding/json"
-	"github.com/go-tron/types/pageable"
 	"reflect"
 	"time"
 )
@@ -15,9 +14,15 @@ type FilterReq struct {
 	Filters map[string]interface{}
 }
 
+type Pageable struct {
+	Page int    `json:"page"`
+	Size int    `json:"size"`
+	Sort string `json:"sort"`
+}
+
 type PageReq struct {
-	*pageable.Pageable `validate:"required"`
-	Filters            map[string]interface{} `json:"filters"`
+	*Pageable `validate:"required"`
+	Filters   map[string]interface{} `json:"filters"`
 }
 
 type PageRes struct {
@@ -191,7 +196,7 @@ func (b *BaseService) FindAll(filters ...map[string]interface{}) (interface{}, e
 	return list, nil
 }
 
-func (b *BaseService) FindPage(pageable *pageable.Pageable, filters ...map[string]interface{}) (*PageRes, error) {
+func (b *BaseService) FindPage(pageable *Pageable, filters ...map[string]interface{}) (*PageRes, error) {
 	model, err := b.NewModel()
 	if err != nil {
 		return nil, err
